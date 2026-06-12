@@ -180,11 +180,12 @@ function renderQbankBody(les) {
       total++; if (fav) totalFav++; if (read) totalRead++;
       items += `<div class="qa-item${fav ? ' is-fav' : ''}${read ? ' is-read' : ''}" data-qid="${qid}">`
         + `<div class="qa-q">`
-        +   `<span class="qa-num">${q.n}</span>`
+        +   `<button class="qa-num" type="button" aria-expanded="false" `
+        +     `aria-label="Show or hide answer for question ${q.n}" title="Show / hide answer" `
+        +     `onclick="toggleQAnswer(this)">${q.n}</button>`
         +   `<span class="qa-text">${mdInline(q.q)}`
         +     `<span class="qa-flag qa-flag-fav" title="Favourited">★</span>`
         +     `<span class="qa-flag qa-flag-read" title="Read">✓</span></span>`
-        +   `<button class="qa-show" type="button" onclick="toggleQAnswer(this)">Show answer</button>`
         + `</div>`
         + `<div class="qa-a" hidden>`
         +   `<div class="qa-a-body">${md(q.a)}</div>`
@@ -211,9 +212,9 @@ function renderQbankBody(les) {
     + `<div class="qbank-controls">`
     +   `<button class="qbank-allbtn" type="button" onclick="toggleAllAnswers(this)">Show all answers</button>`
     +   `<button class="qbank-filter" type="button" data-filter="fav" aria-pressed="false" `
-    +     `title="Show favourites only" onclick="toggleQFilter(this)"><span class="qf-ic">☆</span> Favourites</button>`
-    +   `<button class="qbank-filter" type="button" data-filter="read" aria-pressed="false" `
-    +     `title="Show read only" onclick="toggleQFilter(this)"><span class="qf-ic">✓</span> Read</button>`
+    +     `title="Show only questions you've favourited" onclick="toggleQFilter(this)"><span class="qf-ic">☆</span> Show Fav</button>`
+    +   `<button class="qbank-filter" type="button" data-filter="hideread" aria-pressed="false" `
+    +     `title="Hide questions you've marked as read" onclick="toggleQFilter(this)"><span class="qf-ic">✓</span> Hide Read</button>`
     + `</div></div>`;
 
   const empty = `<p class="qbank-empty" hidden></p>`;
@@ -221,13 +222,15 @@ function renderQbankBody(les) {
   return `<div class="qbank" data-lesson="${lid}">${bar}${empty}${cats}</div>`;
 }
 
-/* ---- Show / hide one answer ---- */
+/* ---- Show / hide one answer (the question-number badge is the toggle) ---- */
 function toggleQAnswer(btn) {
   const item = btn.closest('.qa-item');
   const ans = item.querySelector('.qa-a');
-  const show = ans.hasAttribute('hidden');
-  if (show) { ans.removeAttribute('hidden'); item.classList.add('open'); btn.textContent = 'Hide answer'; }
-  else { ans.setAttribute('hidden', ''); item.classList.remove('open'); btn.textContent = 'Show answer'; }
+  const open = ans.hasAttribute('hidden');   // currently hidden → opening
+  if (open) { ans.removeAttribute('hidden'); item.classList.add('open'); }
+  else { ans.setAttribute('hidden', ''); item.classList.remove('open'); }
+  const num = item.querySelector('.qa-num');
+  if (num) num.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
 /* ---- Show / hide ALL answers; the button label tracks the last action ---- */
@@ -237,9 +240,10 @@ function toggleAllAnswers(btn) {
   wrap.classList.toggle('all-open', open);
   wrap.querySelectorAll('.qa-item').forEach(item => {
     const ans = item.querySelector('.qa-a');
-    const show = item.querySelector('.qa-show');
-    if (open) { ans.removeAttribute('hidden'); item.classList.add('open'); show.textContent = 'Hide answer'; }
-    else { ans.setAttribute('hidden', ''); item.classList.remove('open'); show.textContent = 'Show answer'; }
+    const num = item.querySelector('.qa-num');
+    if (open) { ans.removeAttribute('hidden'); item.classList.add('open'); }
+    else { ans.setAttribute('hidden', ''); item.classList.remove('open'); }
+    if (num) num.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
   btn.textContent = open ? 'Hide all answers' : 'Show all answers';
 }
@@ -263,13 +267,15 @@ function _toggleQState(btn, kind) {
   const wrap = item.closest('.qbank');
   if (wrap) {
     updateQCounts(wrap);
-    if (wrap.classList.contains('filter-fav') || wrap.classList.contains('filter-read')) applyQFilter(wrap);
+    if (wrap.classList.contains('filter-fav') || wrap.classList.contains('filter-hideread')) applyQFilter(wrap);
   }
 }
 function toggleQFav(btn)  { _toggleQState(btn, 'fav'); }
 function toggleQRead(btn) { _toggleQState(btn, 'read'); }
 
-/* ---- Top-bar filter toggles: favourites only / read only (combinable) ---- */
+/* ---- Top-bar filters: "Show Fav" (only favourites) + "Hide Read"
+   (drop anything marked read). Combinable — together they show the
+   questions you flagged as important that you haven't finished yet. ---- */
 function toggleQFilter(btn) {
   const wrap = btn.closest('.qbank');
   const on = btn.classList.toggle('active');
@@ -281,32 +287,32 @@ function toggleQFilter(btn) {
 /* ---- Apply active filters: hide non-matching items + empty cats + empty msg ---- */
 function applyQFilter(wrap) {
   const favOnly = wrap.classList.contains('filter-fav');
-  const readOnly = wrap.classList.contains('filter-read');
+  const hideRead = wrap.classList.contains('filter-hideread');
   let totalVisible = 0;
   wrap.querySelectorAll('.qa-cat').forEach(cat => {
     let shown = 0;
     cat.querySelectorAll('.qa-item').forEach(item => {
       const vis = (!favOnly || item.classList.contains('is-fav'))
-               && (!readOnly || item.classList.contains('is-read'));
+               && (!hideRead || !item.classList.contains('is-read'));
       item.hidden = !vis;
       if (vis) shown++;
     });
-    cat.hidden = (favOnly || readOnly) && shown === 0;
+    cat.hidden = (favOnly || hideRead) && shown === 0;
     totalVisible += shown;
   });
   const empty = wrap.querySelector('.qbank-empty');
   if (empty) {
-    const showEmpty = (favOnly || readOnly) && totalVisible === 0;
+    const showEmpty = (favOnly || hideRead) && totalVisible === 0;
     empty.hidden = !showEmpty;
-    if (showEmpty) empty.innerHTML = _qbankEmptyMsg(favOnly, readOnly);
+    if (showEmpty) empty.innerHTML = _qbankEmptyMsg(favOnly, hideRead);
   }
 }
-function _qbankEmptyMsg(favOnly, readOnly) {
-  if (favOnly && readOnly)
-    return `No questions are both <strong>favourited</strong> and <strong>read</strong> yet.`;
+function _qbankEmptyMsg(favOnly, hideRead) {
+  if (favOnly && hideRead)
+    return `Nothing left here — every favourite is marked read. Nicely done!`;
   if (favOnly)
-    return `You haven't marked any favourite yet. Open a question and tap <strong>☆</strong> to save it here.`;
-  return `You haven't marked any question as read yet. Open a question and tap <strong>✓</strong> to mark it.`;
+    return `You haven't marked any favourite yet. Open a question and tap <strong>☆</strong> to flag the important ones.`;
+  return `Every question here is marked as read — nothing left to review.`;
 }
 
 /* ---- Keep the bar's "N favourited / N read" counters up to date ---- */
