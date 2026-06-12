@@ -603,6 +603,124 @@ aside.toc li a.active { color: var(--accent); border-left-color: var(--accent); 
 .mark-read-btn.is-read { background: #22c55e; }
 .read-hint { font-size: 13px; color: var(--text-muted); }
 
+/* =============================================================
+   Question Bank (Interview Prep)
+   ============================================================= */
+.qbank { margin-top: 8px; }
+
+/* Sticky control bar: question count + "favourites only" toggle */
+.qbank-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  flex-wrap: wrap;
+  position: sticky; top: var(--header-h); z-index: 5;
+  margin: 0 0 8px; padding: 12px 16px;
+  background: var(--bg-alt); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.qbank-bar-info { font-size: 13.5px; color: var(--text-muted); }
+.qbank-bar-info .qbank-total,
+.qbank-bar-info .qbank-fav-count { font-weight: 700; color: var(--text); }
+.qbank-fav-toggle {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg-elev); color: var(--text);
+  font-size: 13.5px; font-weight: 600; padding: 7px 14px; border-radius: 999px;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.qbank-fav-toggle:hover { border-color: var(--accent); }
+.qbank-fav-toggle .fo-star { font-size: 15px; line-height: 1; color: #f5b301; }
+.qbank-fav-toggle.active {
+  background: var(--accent-soft); border-color: var(--accent); color: var(--accent);
+}
+
+/* Empty state when "favourites only" is on and nothing is favourited */
+.qbank-empty {
+  margin: 18px 0; padding: 22px 20px; text-align: center;
+  color: var(--text-muted); font-size: 14.5px;
+  background: var(--bg-alt); border: 1px dashed var(--border); border-radius: var(--radius);
+}
+.qbank-empty strong { color: var(--accent); }
+
+/* Category block */
+.qa-cat { margin: 26px 0 0; }
+.qa-cat > h2 {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.qa-cat-count {
+  flex: none; font-size: 11.5px; font-weight: 700; color: var(--text-muted);
+  background: var(--bg-alt); border: 1px solid var(--border);
+  border-radius: 999px; padding: 1px 9px;
+}
+.qa-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* One question + answer */
+.qa-item {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-elev); overflow: hidden;
+  transition: border-color .15s, box-shadow .15s;
+}
+.qa-item:hover { border-color: color-mix(in srgb, var(--accent-2) 45%, var(--border)); }
+.qa-item.open { box-shadow: var(--shadow); }
+.qa-item.is-fav { border-color: color-mix(in srgb, #f5b301 55%, var(--border)); }
+
+.qa-q {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 14px;
+}
+.qa-num {
+  flex: none; min-width: 26px; height: 26px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12.5px; font-weight: 700; color: #fff; background: var(--accent-2);
+  border-radius: 7px;
+}
+.qa-text {
+  flex: 1; font-weight: 600; font-size: 15px; line-height: 1.5;
+  padding-top: 2px;
+}
+.qa-fav-flag { display: none; margin-left: 6px; color: #f5b301; }
+.qa-item.is-fav .qa-fav-flag { display: inline; }
+
+.qa-show {
+  flex: none; cursor: pointer; align-self: flex-start;
+  border: 1px solid var(--accent-2); background: transparent; color: var(--accent-2);
+  font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+  white-space: nowrap; transition: background .15s, color .15s;
+}
+.qa-show:hover { background: var(--accent-2); color: #fff; }
+
+/* Answer panel (revealed) */
+.qa-a {
+  padding: 2px 16px 14px 52px;
+  border-top: 1px dashed var(--border);
+  animation: qaReveal .2s ease both;
+}
+@keyframes qaReveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.qa-a-body { font-size: 14.5px; color: var(--text); }
+.qa-a-body > :first-child { margin-top: 12px; }
+.qa-a-body p { margin: 8px 0; }
+.qa-a-body code {
+  font-family: var(--mono); font-size: 12.5px; color: var(--accent);
+  background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+}
+
+.qa-fav {
+  margin-top: 10px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg-alt); color: var(--text-muted);
+  font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.qa-fav:hover { border-color: #f5b301; color: var(--text); }
+.qa-item.is-fav .qa-fav {
+  border-color: #f5b301; color: #b8860b;
+  background: color-mix(in srgb, #f5b301 14%, var(--bg-elev));
+}
+
+@media (max-width: 720px) {
+  .qa-q { flex-wrap: wrap; }
+  .qa-show { order: 3; margin-left: 38px; }
+  .qa-a { padding-left: 16px; }
+}
+
 /* ---------- 15-Week Plan dashboard ---------- */
 .plan-summary-row {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 24px 0 0;
