@@ -70,12 +70,13 @@ a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 /* ---------- Scrollbars: a hairline by default, fatten on hover ----------
-   A fixed 12px track keeps a comfortable grab area, while a transparent
-   padding-box border shrinks the visible thumb to a ~2px line. Hovering the
-   scroll area (or the thumb itself) reduces the border so the thumb thickens. */
-* { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }   /* Firefox */
-*:hover { scrollbar-color: var(--text-muted) transparent; }
-
+   IMPORTANT: do NOT set the standard `scrollbar-width` on these elements —
+   in modern Chromium that switches off the ::-webkit-scrollbar customization
+   and you get the browser's default (chunky) bar back. So WebKit/Chromium use
+   the pseudo-elements below; Firefox (which ignores them) gets a feature-query
+   fallback at the end. A fixed 12px track keeps a comfortable grab area, while
+   a transparent padding-box border shrinks the visible thumb to a ~2px line;
+   hovering the scroll area (or the thumb) reduces the border so it thickens. */
 *::-webkit-scrollbar { width: 12px; height: 12px; }
 *::-webkit-scrollbar-track,
 *::-webkit-scrollbar-corner { background: transparent; }
@@ -84,7 +85,6 @@ a:hover { text-decoration: underline; }
   background-clip: padding-box;
   border: 5px solid transparent;          /* 12px track − 2×5px ⇒ 2px visible line */
   border-radius: 999px;
-  transition: border-width .15s ease, background-color .15s ease;
 }
 *:hover::-webkit-scrollbar-thumb {
   border-width: 3px;                       /* ~6px thumb when the area is hovered */
@@ -93,6 +93,11 @@ a:hover { text-decoration: underline; }
 *::-webkit-scrollbar-thumb:hover {
   border-width: 2px;                       /* ~8px and solid when grabbing the thumb */
   background-color: var(--text-muted);
+}
+/* Firefox fallback (no ::-webkit-scrollbar): "thin" is the closest available */
+@supports (-moz-appearance: none) {
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  *:hover { scrollbar-color: var(--text-muted) transparent; }
 }
 
 /* ---------- Header ---------- */
@@ -253,7 +258,6 @@ nav.modules {
   height: 100%; overflow-y: auto;
   border-right: 1px solid var(--border); background: var(--bg-sidebar);
   padding: 10px 0 80px;
-  scrollbar-width: thin;
 }
 
 /* Home / back link */
@@ -1063,33 +1067,50 @@ mark.search-hit {
 .search-mobile-btn { display: none; } /* shown only on small screens */
 
 @media (max-width: 1100px) {
-  /* "On this page" — floating pill at top-right, appears only after scrolling
-     down (like the back-to-top button), and only when the desktop TOC is gone */
+  /* "In this article" — a floating circular icon button at top-right that
+     appears only after scrolling down (like the back-to-top button) and opens
+     a dropdown of the page's sections. Shown only when the desktop TOC is gone. */
   .page-toc-mobile {
     display: block;
     position: fixed;
-    top: calc(var(--header-h) + 12px);
-    right: 14px;
+    top: calc(var(--header-h) + 14px);
+    right: 18px;
     z-index: 150;
-    width: auto; margin: 0;
-    border: 1px solid var(--border); border-radius: 999px;
-    background: var(--bg-elev); box-shadow: var(--shadow-lg);
+    width: 44px; margin: 0;
     opacity: 0; transform: translateY(-8px); pointer-events: none;
     transition: opacity .2s ease, transform .2s ease;
   }
   .page-toc-mobile.ptm-visible { opacity: 1; transform: none; pointer-events: auto; }
+
+  /* the trigger: a circular icon button, mirroring .back-to-top */
   .page-toc-mobile > summary {
     cursor: pointer; list-style: none;
-    display: flex; align-items: center; gap: 8px; white-space: nowrap;
-    padding: 9px 15px; font-size: 13.5px; font-weight: 700; color: var(--text);
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent); color: #fff; box-shadow: var(--shadow-lg);
+    transition: background .15s ease, transform .1s ease;
   }
+  .page-toc-mobile > summary:hover { background: var(--accent-2); }
+  .page-toc-mobile > summary:active { transform: scale(.94); }
   .page-toc-mobile > summary::-webkit-details-marker { display: none; }
-  .ptm-chev { color: var(--accent-2); font-size: 12px; transition: transform .2s ease; }
-  .page-toc-mobile[open] { border-radius: 14px; }
+  .ptm-chev { font-size: 18px; line-height: 1; transition: transform .25s ease; }
   .page-toc-mobile[open] .ptm-chev { transform: rotate(180deg); }
+
+  /* the dropdown panel, anchored under the button on the right */
+  .page-toc-mobile .ptm-panel {
+    position: absolute; top: 52px; right: 0;
+    width: min(290px, 82vw);
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 14px; box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  .page-toc-mobile .ptm-head {
+    padding: 12px 16px 9px; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
   .page-toc-mobile ul {
-    list-style: none; margin: 0; padding: 4px 0 8px;
-    width: min(280px, 78vw); max-height: 62vh; overflow-y: auto;
+    list-style: none; margin: 0; padding: 6px 0 8px;
+    max-height: 60vh; overflow-y: auto;
   }
   .page-toc-mobile li a {
     display: block; padding: 8px 16px; font-size: 13.5px; color: var(--text-muted);

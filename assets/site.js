@@ -614,10 +614,11 @@ function renderLesson(les, collection) {
 
   /* Mobile-only "On this page" disclosure (the desktop TOC is hidden on small screens) */
   if (les.sections && les.sections.length) {
-    html += `<details class="page-toc-mobile"><summary><span>📑 On this page</span><span class="ptm-chev">▾</span></summary><ul>` +
+    html += `<details class="page-toc-mobile"><summary aria-label="In this article" title="In this article"><span class="ptm-chev">▾</span></summary>` +
+      `<div class="ptm-panel"><div class="ptm-head">In this article</div><ul>` +
       les.sections.map(sec =>
         `<li class="${sec.level === 3 ? 'sub' : ''}"><a href="#${sec.id}" data-toc="${sec.id}">${sec.heading}</a></li>`
-      ).join('') + `</ul></details>`;
+      ).join('') + `</ul></div></details>`;
   }
 
   if (les.objectives && les.objectives.length) {
