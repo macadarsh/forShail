@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Java Fundamentals · Shail's Java Mastery</title>
+<link rel="stylesheet" href="assets/styles.css" />
+<script>
+(function(){try{var p=localStorage.getItem('sjm-theme')||'auto';var d=p==='dark'||(p==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');document.documentElement.setAttribute('data-theme-pref',p);}catch(e){}})();
+</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
+  <div class="brand">
+    <a href="index.html"><span class="logo">J</span><span class="brand-name">Shail's Java Mastery</span></a>
+  </div>
+  <div class="search"><span>🔍</span><input type="text" placeholder="Search the course (coming soon)…" /></div>
+  <div class="header-right">
+    <nav class="topnav">
+      <a href="module-java-fundamentals.html" data-nav-modules>Modules</a>
+      <a href="projects.html">Projects</a>
+      <a href="interview-prep.html">Interview</a>
+      <a href="study-plan.html">15-Week Plan</a>
+    </nav>
+    <div class="theme-toggle" role="group" aria-label="Color theme">
+      <button data-theme-choice="light" title="Day">☀</button>
+      <button data-theme-choice="auto" title="Auto (match system)">A</button>
+      <button data-theme-choice="dark" title="Night">☾</button>
+    </div>
+  </div>
+</header>
+<button id="back-to-top" class="back-to-top" aria-label="Back to top" title="Back to top">↑</button>
+<div class="layout">
+  <nav class="modules" id="moduleNav"></nav>
+  <main class="content" id="content"></main>
+  <aside class="toc" id="pageToc"><div class="toc-title">In this article</div><ul id="tocList"></ul></aside>
+</div>
+<div class="backdrop" id="backdrop"></div>
+<script src="assets/site.js"></script>
+<script src="content/m01-java-fundamentals.js"></script>
+<script src="content/m02-oop.js"></script>
+<script src="content/m03-strings.js"></script>
+<script src="content/m04-exceptions.js"></script>
+<script src="content/m05-collections.js"></script>
+<script src="content/m06-generics.js"></script>
+<script src="content/m07-java8.js"></script>
+<script src="content/m08-concurrency.js"></script>
+<script src="content/m09-io.js"></script>
+<script src="content/m10-jdbc.js"></script>
+<script src="content/m11-tools.js"></script>
+<script src="content/m12-design-principles.js"></script>
+<script src="content/m13-design-patterns.js"></script>
+<script src="content/m14-dsa.js"></script>
+<script src="content/projects.js"></script>
+<script src="content/interview.js"></script>
+<script src="content/plan.js"></script>
+<script>initModulePage('java-fundamentals');</script>
+</body>
+</html>

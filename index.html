@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shail's Java Mastery</title>
+<link rel="stylesheet" href="assets/styles.css" />
+<script>
+(function () {
+  try {
+    var p = localStorage.getItem('sjm-theme') || 'auto';
+    var dark = p === 'dark' || (p === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme-pref', p);
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <a href="index.html"><span class="logo">J</span><span class="brand-name">Shail's Java Mastery</span></a>
+  </div>
+  <div class="search"><span>🔍</span><input type="text" placeholder="Search the course (coming soon)…" /></div>
+  <div class="header-right">
+    <nav class="topnav">
+      <a href="module-java-fundamentals.html" data-nav-modules>Modules</a>
+      <a href="projects.html">Projects</a>
+      <a href="interview-prep.html">Interview</a>
+      <a href="study-plan.html">15-Week Plan</a>
+    </nav>
+    <div class="theme-toggle" role="group" aria-label="Color theme">
+      <button data-theme-choice="light" title="Day">☀</button>
+      <button data-theme-choice="auto" title="Auto (match system)">A</button>
+      <button data-theme-choice="dark" title="Night">☾</button>
+    </div>
+  </div>
+</header>
+
+<div id="section-bar-strip" class="section-bar-strip" aria-hidden="true"></div>
+<button id="back-to-top" class="back-to-top" aria-label="Back to top" title="Back to top">↑</button>
+
+<div class="home">
+
+  <!-- Hero -->
+  <section class="hero">
+    <span class="eyebrow">Architect's Curriculum · Interview-Ready</span>
+    <h1 class="hero-title">Shail's Java Mastery</h1>
+    <p class="hero-sub">Designed to take you from foundational Java concepts to cracking senior developer interviews at top product-based companies.</p>
+    <a class="hero-cta" href="module-java-fundamentals.html">Start with Module 1 →</a>
+  </section>
+
+  <!-- 1. Goal / Objective -->
+  <section class="home-section" id="goal">
+    <div class="section-label"><span class="kicker">01 · Goal</span></div>
+    <h2>Course Goal &amp; Objective</h2>
+    <p class="lead">A clear promise: take you from Java beginner to advanced, interview-ready Java developer through deep understanding, hands-on coding, and real-world application.</p>
+    <div class="goal-card">
+      <div class="goal-grid">
+        <div class="goal-item"><span class="ic">🎯</span><p><strong>Beginner → advanced</strong>Become an interview-ready Java developer, step by step.</p></div>
+        <div class="goal-item"><span class="ic">🧠</span><p><strong>Deep understanding</strong>Focus on concepts, problem-solving, and real-world application — not rote.</p></div>
+        <div class="goal-item"><span class="ic">💬</span><p><strong>Simple English first</strong>Every idea explained plainly, then taken to advanced depth.</p></div>
+        <div class="goal-item"><span class="ic">📚</span><p><strong>Theory + practice</strong>Concepts, code examples, best practices, interview questions, and projects.</p></div>
+        <div class="goal-item"><span class="ic">⌨️</span><p><strong>100+ exercises</strong>Hands-on coding exercises with worked solutions throughout.</p></div>
+        <div class="goal-item"><span class="ic">🚀</span><p><strong>Real projects</strong>Mini-projects and full real-world applications you can ship.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Learning Modules -->
+  <section class="home-section" id="modules">
+    <div class="section-label"><span class="kicker">02 · Learn</span></div>
+    <h2>Learning Modules</h2>
+    <p class="lead">Fourteen modules, each its own page so any section can be expanded or updated independently. Click a module to dive into its chapters.</p>
+    <div class="tile-grid" id="moduleGrid"></div>
+  </section>
+
+  <!-- 3. Hands-on Projects -->
+  <section class="home-section" id="projects">
+    <div class="section-label"><span class="kicker">03 · Build</span></div>
+    <h2>Hands-on Projects</h2>
+    <p class="lead">Five real-world applications. Each covers requirements, architecture, folder structure, implementation, GitHub layout, and improvements.</p>
+    <div class="tile-grid" data-collection-grid="projects"></div>
+  </section>
+
+  <!-- 4. Interview Preparation -->
+  <section class="home-section" id="interview">
+    <div class="section-label"><span class="kicker">04 · Prepare</span></div>
+    <h2>Interview Preparation</h2>
+    <p class="lead">Curated question banks and patterns covering core Java, Java 8, Collections, multithreading, scenarios, coding, and system-design basics.</p>
+    <div class="tile-grid" data-collection-grid="interview"></div>
+  </section>
+
+  <!-- 5. 15-Week Study Plan -->
+  <section class="home-section" id="plan">
+    <div class="section-label"><span class="kicker">05 · Plan</span></div>
+    <h2>15-Week Study Plan</h2>
+    <p class="lead">A day-by-day roadmap with daily topics, practice questions, assignments, revision checkpoints, mock interviews, and project milestones.</p>
+    <div class="tile-grid" data-collection-grid="plan"></div>
+  </section>
+
+  <!-- Contact band -->
+  <section class="contact-band">
+    <div class="contact-inner">
+      <span class="contact-eyebrow">Get in Touch</span>
+      <h2 class="contact-heading">Let's talk Java</h2>
+      <p class="contact-msg">Spotted a bug, want a concept covered in more depth, or just want to share how your interview went? I'd love to hear from you.</p>
+      <a class="contact-btn" href="mailto:mac.adarsh@gmail.com">Send a Message</a>
+      <p class="contact-email">or write directly to <a href="mailto:mac.adarsh@gmail.com">mac.adarsh@gmail.com</a></p>
+    </div>
+  </section>
+
+  <footer class="home-footer">
+    <span>© Adarsh Mishra. All rights reserved.</span>
+  </footer>
+
+</div>
+
+<script src="assets/site.js"></script>
+<script src="content/m01-java-fundamentals.js"></script>
+<script src="content/m02-oop.js"></script>
+<script src="content/m03-strings.js"></script>
+<script src="content/m04-exceptions.js"></script>
+<script src="content/m05-collections.js"></script>
+<script src="content/m06-generics.js"></script>
+<script src="content/m07-java8.js"></script>
+<script src="content/m08-concurrency.js"></script>
+<script src="content/m09-io.js"></script>
+<script src="content/m10-jdbc.js"></script>
+<script src="content/m11-tools.js"></script>
+<script src="content/m12-design-principles.js"></script>
+<script src="content/m13-design-patterns.js"></script>
+<script src="content/m14-dsa.js"></script>
+<script src="content/projects.js"></script>
+<script src="content/interview.js"></script>
+<script src="content/plan.js"></script>
+<script>buildHome(); initHomeSections(); initBackToTop();</script>
+</body>
+</html>
