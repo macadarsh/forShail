@@ -612,14 +612,8 @@ function renderLesson(les, collection) {
       ${les.level ? `<span class="badge">🎯 ${les.level}</span>` : ''}
     </div>`;
 
-  /* Mobile-only "On this page" disclosure (the desktop TOC is hidden on small screens) */
-  if (les.sections && les.sections.length) {
-    html += `<details class="page-toc-mobile"><summary aria-label="In this article" title="In this article"><span class="ptm-chev">▾</span></summary>` +
-      `<div class="ptm-panel"><div class="ptm-head">In this article</div><ul>` +
-      les.sections.map(sec =>
-        `<li class="${sec.level === 3 ? 'sub' : ''}"><a href="#${sec.id}" data-toc="${sec.id}">${sec.heading}</a></li>`
-      ).join('') + `</ul></div></details>`;
-  }
+  /* NOTE: the mobile "In this article" floating button is built separately at
+     <body> level (buildMobileToc), NOT inside #content — see below. */
 
   if (les.objectives && les.objectives.length) {
     html += `<div class="objectives"><h4>Learning Objectives</h4><ul>` +
@@ -666,6 +660,7 @@ function renderLesson(les, collection) {
   window.scrollTo(0, 0);
   content.scrollTop = 0;
   buildPageToc(les);
+  buildMobileToc(les);
   updateFloatingUI();
 }
 
@@ -675,6 +670,24 @@ function buildPageToc(les) {
   list.innerHTML = les.sections.map(sec =>
     `<li class="${sec.level === 3 ? 'sub' : ''}"><a href="#${sec.id}" data-toc="${sec.id}">${sec.heading}</a></li>`
   ).join('');
+}
+
+/* Floating mobile "In this article" button. Built at <body> level (a sibling of
+   #back-to-top) so it is never re-anchored by #content's fade-in transform or
+   its scroll container — that re-anchoring was making the button flash and vanish. */
+function buildMobileToc(les) {
+  const old = document.querySelector('.page-toc-mobile');
+  if (old) old.remove();
+  if (!les.sections || !les.sections.length) return;
+  const det = document.createElement('details');
+  det.className = 'page-toc-mobile';
+  det.innerHTML =
+    `<summary aria-label="In this article" title="In this article"><span class="ptm-chev">▾</span></summary>` +
+    `<div class="ptm-panel"><div class="ptm-head">In this article</div><ul>` +
+    les.sections.map(sec =>
+      `<li class="${sec.level === 3 ? 'sub' : ''}"><a href="#${sec.id}" data-toc="${sec.id}">${sec.heading}</a></li>`
+    ).join('') + `</ul></div>`;
+  document.body.appendChild(det);
 }
 
 let _observer;
