@@ -40,7 +40,7 @@ function toggleRead(btn) {
   const nowRead = !isRead(mod, lesson);
   setRead(mod, lesson, nowRead);
   btn.classList.toggle('is-read', nowRead);
-  btn.textContent = nowRead ? '✓ Marked as Read' : 'Mark as Read';
+  btn.textContent = nowRead ? '✓ Marked as Complete' : 'Mark as Complete';
   btn.nextElementSibling.textContent = nowRead
     ? 'Progress tracked on your 15-Week Plan' : 'Track your progress on the 15-Week Plan';
 }
@@ -153,39 +153,47 @@ function qbank(l) {
   return { ...l, qbank: true, categories, sections };
 }
 
-/* ---- Favourite questions: persisted as a set of stable ids ---- */
+/* ---- Per-question state: favourite + read, each a set of stable ids ---- */
 const FAVQ_KEY = 'sjm-fav-q';
-function getFavQs() {
-  try { return new Set(JSON.parse(localStorage.getItem(FAVQ_KEY) || '[]')); }
+const READQ_KEY = 'sjm-read-q';
+function _getIdSet(key) {
+  try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }
   catch (e) { return new Set(); }
 }
-function saveFavQs(set) {
-  try { localStorage.setItem(FAVQ_KEY, JSON.stringify([...set])); } catch (e) {}
+function _saveIdSet(key, set) {
+  try { localStorage.setItem(key, JSON.stringify([...set])); } catch (e) {}
 }
+function getFavQs()  { return _getIdSet(FAVQ_KEY); }
+function getReadQs() { return _getIdSet(READQ_KEY); }
 
 /* ---- Build the interactive body for a question-bank lesson ---- */
 function renderQbankBody(les) {
-  const favs = getFavQs();
+  const favs = getFavQs(), reads = getReadQs();
   const lid = les.id;
-  let total = 0, totalFav = 0, cats = '';
+  let total = 0, totalFav = 0, totalRead = 0, cats = '';
 
   les.categories.forEach(cat => {
     let items = '';
     cat.questions.forEach(q => {
       const qid = 'interview::' + lid + '::' + q.n;
-      const fav = favs.has(qid);
-      total++; if (fav) totalFav++;
-      items += `<div class="qa-item${fav ? ' is-fav' : ''}" data-qid="${qid}">`
+      const fav = favs.has(qid), read = reads.has(qid);
+      total++; if (fav) totalFav++; if (read) totalRead++;
+      items += `<div class="qa-item${fav ? ' is-fav' : ''}${read ? ' is-read' : ''}" data-qid="${qid}">`
         + `<div class="qa-q">`
         +   `<span class="qa-num">${q.n}</span>`
         +   `<span class="qa-text">${mdInline(q.q)}`
-        +     `<span class="qa-fav-flag" title="Favourited">★</span></span>`
+        +     `<span class="qa-flag qa-flag-fav" title="Favourited">★</span>`
+        +     `<span class="qa-flag qa-flag-read" title="Read">✓</span></span>`
         +   `<button class="qa-show" type="button" onclick="toggleQAnswer(this)">Show answer</button>`
         + `</div>`
         + `<div class="qa-a" hidden>`
         +   `<div class="qa-a-body">${md(q.a)}</div>`
-        +   `<button class="qa-fav" type="button" onclick="toggleQFav(this)">`
-        +     `${fav ? '★ Favourited' : '☆ Favourite'}</button>`
+        +   `<div class="qa-actions">`
+        +     `<button class="qa-icon qa-fav${fav ? ' is-on' : ''}" type="button" aria-pressed="${fav}" `
+        +       `title="${fav ? 'Favourited' : 'Favourite'}" onclick="toggleQFav(this)">${fav ? '★' : '☆'}</button>`
+        +     `<button class="qa-icon qa-read${read ? ' is-on' : ''}" type="button" aria-pressed="${read}" `
+        +       `title="${read ? 'Marked as read' : 'Mark as read'}" onclick="toggleQRead(this)">✓</button>`
+        +   `</div>`
         + `</div>`
         + `</div>`;
     });
@@ -198,13 +206,17 @@ function renderQbankBody(les) {
 
   const bar = `<div class="qbank-bar">`
     + `<div class="qbank-bar-info"><span class="qbank-total">${total}</span> questions`
-    +   ` · <span class="qbank-fav-count">${totalFav}</span> favourited</div>`
-    + `<button class="qbank-fav-toggle" type="button" aria-pressed="false" onclick="toggleFavOnly(this)">`
-    +   `<span class="fo-star">☆</span><span class="fo-label">Show favourites only</span></button>`
-    + `</div>`;
+    +   ` · <span class="qbank-fav-count">${totalFav}</span> favourited`
+    +   ` · <span class="qbank-read-count">${totalRead}</span> read</div>`
+    + `<div class="qbank-controls">`
+    +   `<button class="qbank-allbtn" type="button" onclick="toggleAllAnswers(this)">Show all answers</button>`
+    +   `<button class="qbank-filter" type="button" data-filter="fav" aria-pressed="false" `
+    +     `title="Show favourites only" onclick="toggleQFilter(this)"><span class="qf-ic">☆</span> Favourites</button>`
+    +   `<button class="qbank-filter" type="button" data-filter="read" aria-pressed="false" `
+    +     `title="Show read only" onclick="toggleQFilter(this)"><span class="qf-ic">✓</span> Read</button>`
+    + `</div></div>`;
 
-  const empty = `<p class="qbank-empty" hidden>You haven't marked any favourite yet. `
-    + `Open a question, read the answer, and tap <strong>☆ Favourite</strong> to save it here.</p>`;
+  const empty = `<p class="qbank-empty" hidden></p>`;
 
   return `<div class="qbank" data-lesson="${lid}">${bar}${empty}${cats}</div>`;
 }
@@ -218,56 +230,91 @@ function toggleQAnswer(btn) {
   else { ans.setAttribute('hidden', ''); item.classList.remove('open'); btn.textContent = 'Show answer'; }
 }
 
-/* ---- Favourite / unfavourite one question ---- */
-function toggleQFav(btn) {
+/* ---- Show / hide ALL answers; the button label tracks the last action ---- */
+function toggleAllAnswers(btn) {
+  const wrap = btn.closest('.qbank');
+  const open = !wrap.classList.contains('all-open');
+  wrap.classList.toggle('all-open', open);
+  wrap.querySelectorAll('.qa-item').forEach(item => {
+    const ans = item.querySelector('.qa-a');
+    const show = item.querySelector('.qa-show');
+    if (open) { ans.removeAttribute('hidden'); item.classList.add('open'); show.textContent = 'Hide answer'; }
+    else { ans.setAttribute('hidden', ''); item.classList.remove('open'); show.textContent = 'Show answer'; }
+  });
+  btn.textContent = open ? 'Hide all answers' : 'Show all answers';
+}
+
+/* ---- Toggle one question's favourite / read state (icon buttons) ---- */
+function _toggleQState(btn, kind) {
+  const cfg = kind === 'fav'
+    ? { key: FAVQ_KEY, cls: 'is-fav', on: '★', off: '☆', onTitle: 'Favourited', offTitle: 'Favourite' }
+    : { key: READQ_KEY, cls: 'is-read', on: '✓', off: '✓', onTitle: 'Marked as read', offTitle: 'Mark as read' };
   const item = btn.closest('.qa-item');
   const qid = item.dataset.qid;
-  const favs = getFavQs();
-  const on = !favs.has(qid);
-  if (on) favs.add(qid); else favs.delete(qid);
-  saveFavQs(favs);
-  item.classList.toggle('is-fav', on);
-  btn.innerHTML = on ? '★ Favourited' : '☆ Favourite';
+  const set = _getIdSet(cfg.key);
+  const on = !set.has(qid);
+  if (on) set.add(qid); else set.delete(qid);
+  _saveIdSet(cfg.key, set);
+  item.classList.toggle(cfg.cls, on);
+  btn.textContent = on ? cfg.on : cfg.off;
+  btn.classList.toggle('is-on', on);
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.title = on ? cfg.onTitle : cfg.offTitle;
   const wrap = item.closest('.qbank');
   if (wrap) {
-    updateFavCount(wrap);
-    if (wrap.classList.contains('fav-only')) applyFavFilter(wrap);
+    updateQCounts(wrap);
+    if (wrap.classList.contains('filter-fav') || wrap.classList.contains('filter-read')) applyQFilter(wrap);
   }
 }
+function toggleQFav(btn)  { _toggleQState(btn, 'fav'); }
+function toggleQRead(btn) { _toggleQState(btn, 'read'); }
 
-/* ---- Toggle the "favourites only" view ---- */
-function toggleFavOnly(btn) {
+/* ---- Top-bar filter toggles: favourites only / read only (combinable) ---- */
+function toggleQFilter(btn) {
   const wrap = btn.closest('.qbank');
-  const on = wrap.classList.toggle('fav-only');
+  const on = btn.classList.toggle('active');
   btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-  btn.classList.toggle('active', on);
-  const star = btn.querySelector('.fo-star'); if (star) star.textContent = on ? '★' : '☆';
-  const lab = btn.querySelector('.fo-label'); if (lab) lab.textContent = on ? 'Showing favourites only' : 'Show favourites only';
-  applyFavFilter(wrap);
+  wrap.classList.toggle('filter-' + btn.dataset.filter, on);
+  applyQFilter(wrap);
 }
 
-/* ---- Apply the favourites-only filter (hide non-favs + empty cats) ---- */
-function applyFavFilter(wrap) {
-  const favOnly = wrap.classList.contains('fav-only');
+/* ---- Apply active filters: hide non-matching items + empty cats + empty msg ---- */
+function applyQFilter(wrap) {
+  const favOnly = wrap.classList.contains('filter-fav');
+  const readOnly = wrap.classList.contains('filter-read');
   let totalVisible = 0;
   wrap.querySelectorAll('.qa-cat').forEach(cat => {
     let shown = 0;
     cat.querySelectorAll('.qa-item').forEach(item => {
-      const vis = !favOnly || item.classList.contains('is-fav');
+      const vis = (!favOnly || item.classList.contains('is-fav'))
+               && (!readOnly || item.classList.contains('is-read'));
       item.hidden = !vis;
       if (vis) shown++;
     });
-    cat.hidden = favOnly && shown === 0;
+    cat.hidden = (favOnly || readOnly) && shown === 0;
     totalVisible += shown;
   });
   const empty = wrap.querySelector('.qbank-empty');
-  if (empty) empty.hidden = !(favOnly && totalVisible === 0);
+  if (empty) {
+    const showEmpty = (favOnly || readOnly) && totalVisible === 0;
+    empty.hidden = !showEmpty;
+    if (showEmpty) empty.innerHTML = _qbankEmptyMsg(favOnly, readOnly);
+  }
+}
+function _qbankEmptyMsg(favOnly, readOnly) {
+  if (favOnly && readOnly)
+    return `No questions are both <strong>favourited</strong> and <strong>read</strong> yet.`;
+  if (favOnly)
+    return `You haven't marked any favourite yet. Open a question and tap <strong>☆</strong> to save it here.`;
+  return `You haven't marked any question as read yet. Open a question and tap <strong>✓</strong> to mark it.`;
 }
 
-/* ---- Keep the "N favourited" counter in the bar up to date ---- */
-function updateFavCount(wrap) {
-  const el = wrap.querySelector('.qbank-fav-count');
-  if (el) el.textContent = wrap.querySelectorAll('.qa-item.is-fav').length;
+/* ---- Keep the bar's "N favourited / N read" counters up to date ---- */
+function updateQCounts(wrap) {
+  const f = wrap.querySelector('.qbank-fav-count');
+  const r = wrap.querySelector('.qbank-read-count');
+  if (f) f.textContent = wrap.querySelectorAll('.qa-item.is-fav').length;
+  if (r) r.textContent = wrap.querySelectorAll('.qa-item.is-read').length;
 }
 
 /* =============================================================
@@ -590,7 +637,7 @@ function renderLesson(les, collection) {
       <button class="mark-read-btn${alreadyRead ? ' is-read' : ''}"
               data-module="${collection.id}" data-lesson="${les.id}"
               onclick="toggleRead(this)">
-        ${alreadyRead ? '✓ Marked as Read' : 'Mark as Read'}
+        ${alreadyRead ? '✓ Marked as Complete' : 'Mark as Complete'}
       </button>
       <span class="read-hint">${alreadyRead ? 'Progress tracked on your 15-Week Plan' : 'Track your progress on the 15-Week Plan'}</span>
     </div>`;

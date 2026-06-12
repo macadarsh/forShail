@@ -586,7 +586,7 @@ aside.toc li a.active { color: var(--accent); border-left-color: var(--accent); 
 }
 .flow-chips span .n { color: var(--accent-2); font-weight: 800; margin-right: 5px; }
 
-/* ---------- Mark as Read bar ---------- */
+/* ---------- Mark as Complete bar ---------- */
 .mark-read-bar {
   display: flex; align-items: center; gap: 14px;
   margin: 36px 0 0; padding: 18px 20px;
@@ -608,27 +608,36 @@ aside.toc li a.active { color: var(--accent); border-left-color: var(--accent); 
    ============================================================= */
 .qbank { margin-top: 8px; }
 
-/* Sticky control bar: question count + "favourites only" toggle */
+/* Control bar (NOT sticky — scrolls away with the content) */
 .qbank-bar {
-  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px 16px;
   flex-wrap: wrap;
-  position: sticky; top: var(--header-h); z-index: 5;
-  margin: 0 0 8px; padding: 12px 16px;
+  margin: 0 0 16px; padding: 12px 16px;
   background: var(--bg-alt); border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 .qbank-bar-info { font-size: 13.5px; color: var(--text-muted); }
 .qbank-bar-info .qbank-total,
-.qbank-bar-info .qbank-fav-count { font-weight: 700; color: var(--text); }
-.qbank-fav-toggle {
-  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+.qbank-bar-info .qbank-fav-count,
+.qbank-bar-info .qbank-read-count { font-weight: 700; color: var(--text); }
+.qbank-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qbank-allbtn {
+  cursor: pointer; border: 1px solid var(--accent-2); background: transparent; color: var(--accent-2);
+  font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px;
+  transition: background .15s, color .15s;
+}
+.qbank-allbtn:hover { background: var(--accent-2); color: #fff; }
+.qbank-filter {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
   border: 1px solid var(--border); background: var(--bg-elev); color: var(--text);
-  font-size: 13.5px; font-weight: 600; padding: 7px 14px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: 999px;
   transition: border-color .15s, background .15s, color .15s;
 }
-.qbank-fav-toggle:hover { border-color: var(--accent); }
-.qbank-fav-toggle .fo-star { font-size: 15px; line-height: 1; color: #f5b301; }
-.qbank-fav-toggle.active {
+.qbank-filter:hover { border-color: var(--accent); }
+.qbank-filter .qf-ic { font-size: 14px; line-height: 1; }
+.qbank-filter[data-filter="fav"] .qf-ic { color: #f5b301; }
+.qbank-filter[data-filter="read"] .qf-ic { color: #22c55e; }
+.qbank-filter.active {
   background: var(--accent-soft); border-color: var(--accent); color: var(--accent);
 }
 
@@ -677,8 +686,11 @@ aside.toc li a.active { color: var(--accent); border-left-color: var(--accent); 
   flex: 1; font-weight: 600; font-size: 15px; line-height: 1.5;
   padding-top: 2px;
 }
-.qa-fav-flag { display: none; margin-left: 6px; color: #f5b301; }
-.qa-item.is-fav .qa-fav-flag { display: inline; }
+.qa-flag { display: none; margin-left: 6px; font-size: 13px; }
+.qa-flag-fav { color: #f5b301; }
+.qa-flag-read { color: #22c55e; }
+.qa-item.is-fav .qa-flag-fav { display: inline; }
+.qa-item.is-read .qa-flag-read { display: inline; }
 
 .qa-show {
   flex: none; cursor: pointer; align-self: flex-start;
@@ -703,16 +715,26 @@ aside.toc li a.active { color: var(--accent); border-left-color: var(--accent); 
   background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
 }
 
-.qa-fav {
-  margin-top: 10px; cursor: pointer;
+/* Favourite + Mark-as-read: icon-only buttons inside the answer */
+.qa-actions { display: flex; gap: 8px; margin-top: 12px; }
+.qa-icon {
+  width: 32px; height: 32px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; line-height: 1;
   border: 1px solid var(--border); background: var(--bg-alt); color: var(--text-muted);
-  font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
-  transition: border-color .15s, color .15s, background .15s;
+  border-radius: 999px;
+  transition: border-color .15s, color .15s, background .15s, transform .1s;
 }
-.qa-fav:hover { border-color: #f5b301; color: var(--text); }
-.qa-item.is-fav .qa-fav {
-  border-color: #f5b301; color: #b8860b;
-  background: color-mix(in srgb, #f5b301 14%, var(--bg-elev));
+.qa-icon:hover { transform: translateY(-1px); }
+.qa-fav:hover { border-color: #f5b301; color: #f5b301; }
+.qa-read:hover { border-color: #22c55e; color: #22c55e; }
+.qa-fav.is-on {
+  border-color: #f5b301; color: #f5b301;
+  background: color-mix(in srgb, #f5b301 16%, var(--bg-elev));
+}
+.qa-read.is-on {
+  border-color: #22c55e; color: #22c55e;
+  background: color-mix(in srgb, #22c55e 14%, var(--bg-elev));
 }
 
 @media (max-width: 720px) {
