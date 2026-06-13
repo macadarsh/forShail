@@ -222,6 +222,7 @@ header.topbar {
   padding: 15px; display: flex; flex-direction: column; gap: 15px;
   animation: rpPop .16s ease both;
 }
+.rp-panel[hidden] { display: none; }
 @keyframes rpPop { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
 .rp-row { display: flex; flex-direction: column; gap: 8px; }
 .rp-label {
