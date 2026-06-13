@@ -6,7 +6,7 @@
 <title>Generics · Shail's Java Mastery</title>
 <link rel="stylesheet" href="assets/styles.css" />
 <script>
-(function(){try{var p=localStorage.getItem('sjm-theme')||'auto';var d=p==='dark'||(p==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');document.documentElement.setAttribute('data-theme-pref',p);}catch(e){}})();
+(function(){try{var L=localStorage,r=document.documentElement,p=L.getItem('sjm-theme')||'auto',t=p==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;r.setAttribute('data-theme',t);r.setAttribute('data-theme-pref',p);r.setAttribute('data-font',L.getItem('sjm-font')||'sans');r.setAttribute('data-size',L.getItem('sjm-size')||'m');r.setAttribute('data-density',L.getItem('sjm-density')||'cozy');}catch(e){}})();
 </script>
 </head>
 <body>
@@ -23,10 +23,8 @@
       <a href="interview-prep.html">Interview</a>
       <a href="study-plan.html">15-Week Plan</a>
     </nav>
-    <div class="theme-toggle" role="group" aria-label="Color theme">
-      <button data-theme-choice="light" title="Day">☀</button>
-      <button data-theme-choice="auto" title="Auto (match system)">A</button>
-      <button data-theme-choice="dark" title="Night">☾</button>
+    <div class="reading-prefs">
+      <button class="rp-btn" id="rpBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Reading preferences" title="Reading preferences"><span class="rp-aa">Aa</span></button>
     </div>
   </div>
 </header>

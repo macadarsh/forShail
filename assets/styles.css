@@ -1,8 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;500;700&display=swap');
+
 /* =============================================================
    Shail's Java Mastery — global stylesheet
    ALL look & feel lives here. Edit this one file to restyle the
-   entire site. Themes are driven by [data-theme="light|dark"] on
-   the <html> element (set by the inline bootstrap + site.js).
+   entire site. Themes are driven by [data-theme="light|sepia|dark"]
+   on the <html> element (set by the inline bootstrap + site.js).
+
+   Reading preferences (the top-right "Aa" control) add three more
+   <html> attributes that this file reacts to:
+     data-font    = sans | serif | hyper | lexend   (text type)
+     data-size    = s | m | l | xl                  (text size)
+     data-density = compact | cozy | comfortable    (compactness)
    ============================================================= */
 
 /* ---------- Theme tokens ---------- */
@@ -45,13 +53,54 @@
   --shadow-lg: 0 12px 32px rgba(0,0,0,.55);
 }
 
+[data-theme="sepia"] {
+  --bg: #f5ecd9;
+  --bg-alt: #efe4cd;
+  --bg-sidebar: #f1e8d4;
+  --bg-elev: #fbf4e2;
+  --text: #4a3f2e;
+  --text-muted: #8a7a5e;
+  --border: #e0d2b4;
+  --accent: #b5552f;
+  --accent-2: #1f7a7a;
+  --accent-soft: #efddc7;
+  --link: #9a5a1e;
+  --code-bg: #efe4cd;
+  --info-bg: #f0e7d2;
+  --info-border: #ddccaa;
+  --shadow: 0 1px 3px rgba(74,63,46,.14), 0 1px 2px rgba(74,63,46,.10);
+  --shadow-lg: 0 12px 32px rgba(74,63,46,.20);
+}
+
+/* ---------- Reading-preference tokens ----------
+   Defaults below match the previous look; the <html> data-* attributes
+   (set by the bootstrap + the "Aa" panel) override them. */
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --base-fs: 15px;   /* text size  */
+  --read-lh: 1.6;    /* density: line-height */
+  --read-gap: 1em;   /* density: paragraph spacing */
+}
+[data-font="sans"]   { --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+[data-font="serif"]  { --font: Georgia, "Iowan Old Style", "Times New Roman", Times, serif; }
+[data-font="hyper"]  { --font: "Atkinson Hyperlegible", -apple-system, "Segoe UI", Roboto, sans-serif; }
+[data-font="lexend"] { --font: "Lexend", -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+[data-size="s"]  { --base-fs: 13.5px; }
+[data-size="m"]  { --base-fs: 15px; }
+[data-size="l"]  { --base-fs: 17px; }
+[data-size="xl"] { --base-fs: 19px; }
+
+[data-density="compact"]     { --read-lh: 1.45; --read-gap: .65em; }
+[data-density="cozy"]        { --read-lh: 1.6;  --read-gap: 1em; }
+[data-density="comfortable"] { --read-lh: 1.85; --read-gap: 1.45em; }
+
 :root {
   --sidebar-w: 300px;
   --toc-w: 240px;
   --content-max: 1040px;
   --header-h: 58px;
   --radius: 8px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --mono: "SF Mono", "Cascadia Code", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
@@ -61,8 +110,8 @@ body {
   font-family: var(--font);
   color: var(--text);
   background: var(--bg);
-  line-height: 1.6;
-  font-size: 15px;
+  line-height: var(--read-lh, 1.6);
+  font-size: var(--base-fs, 15px);
   -webkit-font-smoothing: antialiased;
   transition: background .2s ease, color .2s ease;
 }
@@ -143,24 +192,97 @@ header.topbar {
 .topnav a { color: var(--text-muted); font-size: 14px; font-weight: 500; }
 .topnav a:hover { color: var(--accent); text-decoration: none; }
 
-/* theme toggle (top-right, 3-way) */
+/* =============================================================
+   Reading preferences — single "Aa" control (top-right) + popover.
+   Controls text type, background, text size, and compactness.
+   Replaces the old 3-way day/auto/night toggle.
+   ============================================================= */
 .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
-.theme-toggle {
-  display: inline-flex; align-items: center;
-  background: var(--bg-alt); border: 1px solid var(--border);
-  border-radius: 999px; padding: 3px;
+.reading-prefs { position: relative; }
+.rp-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; height: 32px; padding: 0 12px;
+  border: 1px solid var(--border); background: var(--bg-alt);
+  border-radius: 999px; cursor: pointer; color: var(--text);
+  font-weight: 700; line-height: 1;
+  transition: background .15s, border-color .15s, color .15s;
 }
-.theme-toggle button {
-  border: none; background: transparent; cursor: pointer;
-  width: 30px; height: 26px; border-radius: 999px; font-size: 14px;
-  color: var(--text-muted); display: grid; place-items: center;
-  transition: background .15s, color .15s;
+.rp-aa { font-family: Georgia, "Times New Roman", serif; font-size: 16px; }
+.rp-aa::first-letter { font-size: 1.12em; }
+.rp-btn:hover { color: var(--accent); border-color: var(--accent); }
+.reading-prefs.rp-open .rp-btn {
+  color: var(--accent); border-color: var(--accent); background: var(--accent-soft);
 }
-.theme-toggle button:hover { color: var(--text); }
-.theme-toggle button.active {
-  background: var(--bg-elev); color: var(--accent);
-  box-shadow: var(--shadow); font-weight: 700;
+
+.rp-panel {
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 200;
+  width: 304px; max-width: calc(100vw - 24px);
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: var(--shadow-lg);
+  padding: 15px; display: flex; flex-direction: column; gap: 15px;
+  animation: rpPop .16s ease both;
 }
+@keyframes rpPop { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+.rp-row { display: flex; flex-direction: column; gap: 8px; }
+.rp-label {
+  font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.rp-opts { display: grid; gap: 7px; }
+.rp-fonts, .rp-themes, .rp-sizes { grid-template-columns: repeat(4, 1fr); }
+.rp-density { grid-template-columns: repeat(3, 1fr); }
+.rp-opt {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 46px; padding: 6px 4px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  border-radius: 10px; cursor: pointer; font-size: 13px; line-height: 1.1;
+  transition: border-color .14s, background .14s, color .14s, box-shadow .14s;
+}
+.rp-opt:hover { border-color: var(--accent-2); }
+.rp-opt.active {
+  border-color: var(--accent); color: var(--accent);
+  background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); font-weight: 700;
+}
+.rp-cap {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: .02em;
+}
+.rp-opt.active .rp-cap { color: var(--accent); }
+
+/* font-type previews */
+.rp-fonts .rp-opt { font-size: 17px; font-weight: 700; }
+.rp-font-sans   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.rp-font-serif  { font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; }
+.rp-font-hyper  { font-family: "Atkinson Hyperlegible", sans-serif; }
+.rp-font-lexend { font-family: "Lexend", sans-serif; }
+
+/* background (theme) swatches */
+.rp-sw { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0,0,0,.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+.rp-theme-auto  .rp-sw { background: linear-gradient(125deg, #ffffff 0 50%, #0d1117 50% 100%); }
+.rp-theme-light .rp-sw { background: #ffffff; }
+.rp-theme-sepia .rp-sw { background: #f5ecd9; }
+.rp-theme-dark  .rp-sw { background: #0d1117; }
+
+/* text-size letters */
+.rp-aletter { font-weight: 800; line-height: 1; }
+
+/* compactness icon (line spacing changes per option) */
+.rp-dico {
+  width: 24px; height: 15px; border-radius: 3px;
+  background-image: repeating-linear-gradient(to bottom, currentColor 0 1.5px, transparent 1.5px var(--g));
+  color: var(--text-muted);
+}
+.rp-opt.active .rp-dico { color: var(--accent); }
+.rp-dens-compact     .rp-dico { --g: 4px; }
+.rp-dens-cozy        .rp-dico { --g: 5.5px; }
+.rp-dens-comfortable .rp-dico { --g: 7.5px; }
+
+.rp-reset {
+  border: 1px solid var(--border); background: var(--bg-alt); color: var(--text-muted);
+  border-radius: 8px; padding: 9px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+  font-family: inherit; transition: color .14s, border-color .14s;
+}
+.rp-reset:hover { color: var(--accent); border-color: var(--accent); }
 .menu-toggle {
   display: none; background: none; border: 1px solid var(--border);
   border-radius: 6px; padding: 6px 9px; cursor: pointer; font-size: 16px; color: var(--text);
@@ -417,8 +539,8 @@ main.content.fade-in { animation: contentFadeIn .26s ease both; }
   display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .07em;
   text-transform: uppercase; color: var(--accent); margin-bottom: 4px;
 }
-main h1 { font-size: 30px; line-height: 1.25; margin: 4px 0 6px; font-weight: 700; letter-spacing: -.01em; }
-.subtitle { color: var(--text-muted); font-size: 16px; margin: 0 0 4px; }
+main h1 { font-size: 2em; line-height: 1.25; margin: 4px 0 6px; font-weight: 700; letter-spacing: -.01em; }
+.subtitle { color: var(--text-muted); font-size: 1.07em; margin: 0 0 4px; }
 .article-meta {
   display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
   color: var(--text-muted); font-size: 13px;
@@ -430,11 +552,11 @@ main h1 { font-size: 30px; line-height: 1.25; margin: 4px 0 6px; font-weight: 70
   border-radius: 20px; padding: 3px 11px; font-size: 12px; font-weight: 500;
 }
 main h2 {
-  font-size: 22px; margin: 36px 0 12px; font-weight: 700; scroll-margin-top: 74px;
+  font-size: 1.46em; margin: 36px 0 12px; font-weight: 700; scroll-margin-top: 74px;
   padding-bottom: 6px; border-bottom: 1px solid var(--border);
 }
-main h3 { font-size: 17px; margin: 24px 0 8px; font-weight: 650; scroll-margin-top: 74px; }
-main p { margin: 12px 0; }
+main h3 { font-size: 1.13em; margin: 24px 0 8px; font-weight: 650; scroll-margin-top: 74px; }
+main p { margin: var(--read-gap, 1em) 0; }
 .placeholder {
   color: var(--text-muted); font-style: italic;
   background: var(--bg-alt); border: 1px dashed var(--border);
@@ -456,15 +578,15 @@ main p { margin: 12px 0; }
 pre {
   background: #0f1720; color: #e6edf3; border: 1px solid var(--border);
   border-radius: var(--radius); padding: 16px 18px; overflow-x: auto;
-  font-family: var(--mono); font-size: 13.5px; line-height: 1.55; margin: 16px 0;
+  font-family: var(--mono); font-size: .9em; line-height: 1.55; margin: 16px 0;
 }
 pre .c { color: #7d8590; } pre .k { color: #ff7b72; }
 pre .s { color: #a5d6ff; } pre .t { color: #ffa657; }
 code:not(pre code) {
   background: var(--code-bg); padding: 2px 6px; border-radius: 5px;
-  font-family: var(--mono); font-size: 13px; color: var(--accent);
+  font-family: var(--mono); font-size: .87em; color: var(--accent);
 }
-main ul, main ol { margin: 12px 0; padding-left: 24px; }
+main ul, main ol { margin: var(--read-gap, 1em) 0; padding-left: 24px; }
 main li { margin: 5px 0; }
 main blockquote {
   margin: 16px 0; padding: 10px 16px; border-left: 4px solid var(--accent-2);
@@ -472,7 +594,7 @@ main blockquote {
 }
 main blockquote p { margin: 6px 0; }
 main table {
-  width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;
+  width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .93em;
   border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
 }
 main th, main td { text-align: left; padding: 9px 13px; border-bottom: 1px solid var(--border); }

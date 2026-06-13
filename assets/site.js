@@ -440,28 +440,110 @@ function md(src) {
 }
 
 /* =============================================================
-   Theme (Day | Auto | Night)
+   Reading preferences — one "Aa" control (top-right) with a popover.
+   Four settings, each stored in localStorage and reflected as a
+   data-* attribute on <html> that the stylesheet reacts to:
+     text type   → data-font    (sans | serif | hyper | lexend)
+     background  → data-theme    (light | sepia | dark; "auto" tracks OS)
+     text size   → data-size     (s | m | l | xl)
+     compactness → data-density  (compact | cozy | comfortable)
+   Replaces the old 3-way day/auto/night toggle.
    ============================================================= */
-function initTheme() {
+const RP_KEYS     = { theme: 'sjm-theme', font: 'sjm-font', size: 'sjm-size', density: 'sjm-density' };
+const RP_DEFAULTS = { theme: 'auto',      font: 'sans',     size: 'm',        density: 'cozy' };
+const RP_MQ = window.matchMedia('(prefers-color-scheme: dark)');
+
+function _rpGet(kind) {
+  try { return localStorage.getItem(RP_KEYS[kind]) || RP_DEFAULTS[kind]; }
+  catch (e) { return RP_DEFAULTS[kind]; }
+}
+/* Background: "auto" resolves to light/dark from the OS; sepia/light/dark are literal. */
+function _rpApplyTheme(pref) {
   const root = document.documentElement;
-  let pref = root.getAttribute('data-theme-pref') || 'auto';
-  const mq = window.matchMedia('(prefers-color-scheme: dark)');
-  function apply() {
-    const dark = pref === 'dark' || (pref === 'auto' && mq.matches);
-    root.setAttribute('data-theme', dark ? 'dark' : 'light');
-    root.setAttribute('data-theme-pref', pref);
-    document.querySelectorAll('.theme-toggle [data-theme-choice]').forEach(b =>
-      b.classList.toggle('active', b.dataset.themeChoice === pref));
-  }
-  if (mq.addEventListener) mq.addEventListener('change', () => { if (pref === 'auto') apply(); });
-  document.querySelectorAll('.theme-toggle [data-theme-choice]').forEach(b => {
-    b.addEventListener('click', () => {
-      pref = b.dataset.themeChoice;
-      try { localStorage.setItem('sjm-theme', pref); } catch (e) {}
-      apply();
-    });
+  const resolved = pref === 'auto' ? (RP_MQ.matches ? 'dark' : 'light') : pref;
+  root.setAttribute('data-theme', resolved);
+  root.setAttribute('data-theme-pref', pref);
+}
+function _rpApply(kind, val) {
+  if (kind === 'theme') _rpApplyTheme(val);
+  else document.documentElement.setAttribute('data-' + kind, val);
+  try { localStorage.setItem(RP_KEYS[kind], val); } catch (e) {}
+  _rpSync();
+}
+/* Reflect the saved state onto the panel's option buttons. */
+function _rpSync() {
+  document.querySelectorAll('.rp-opt').forEach(b => {
+    const on = b.dataset.val === _rpGet(b.dataset.rp);
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
-  apply();
+}
+
+const RP_PANEL_HTML =
+  '<div class="rp-panel" role="dialog" aria-label="Reading preferences" hidden>'
+  + '<div class="rp-row"><div class="rp-label">Text type</div><div class="rp-opts rp-fonts">'
+  +   '<button class="rp-opt rp-font-sans"   data-rp="font" data-val="sans"   title="Sans-serif">Ag<span class="rp-cap">Sans</span></button>'
+  +   '<button class="rp-opt rp-font-serif"  data-rp="font" data-val="serif"  title="Serif">Ag<span class="rp-cap">Serif</span></button>'
+  +   '<button class="rp-opt rp-font-hyper"  data-rp="font" data-val="hyper"  title="Atkinson Hyperlegible">Ag<span class="rp-cap">Legible</span></button>'
+  +   '<button class="rp-opt rp-font-lexend" data-rp="font" data-val="lexend" title="Lexend">Ag<span class="rp-cap">Lexend</span></button>'
+  + '</div></div>'
+  + '<div class="rp-row"><div class="rp-label">Background</div><div class="rp-opts rp-themes">'
+  +   '<button class="rp-opt rp-theme-auto"  data-rp="theme" data-val="auto"  title="Match your system"><span class="rp-sw"></span><span class="rp-cap">Auto</span></button>'
+  +   '<button class="rp-opt rp-theme-light" data-rp="theme" data-val="light" title="Light"><span class="rp-sw"></span><span class="rp-cap">Light</span></button>'
+  +   '<button class="rp-opt rp-theme-sepia" data-rp="theme" data-val="sepia" title="Sepia"><span class="rp-sw"></span><span class="rp-cap">Sepia</span></button>'
+  +   '<button class="rp-opt rp-theme-dark"  data-rp="theme" data-val="dark"  title="Dark"><span class="rp-sw"></span><span class="rp-cap">Dark</span></button>'
+  + '</div></div>'
+  + '<div class="rp-row"><div class="rp-label">Text size</div><div class="rp-opts rp-sizes">'
+  +   '<button class="rp-opt" data-rp="size" data-val="s"  title="Small"><span class="rp-aletter" style="font-size:13px">A</span><span class="rp-cap">S</span></button>'
+  +   '<button class="rp-opt" data-rp="size" data-val="m"  title="Medium"><span class="rp-aletter" style="font-size:16px">A</span><span class="rp-cap">M</span></button>'
+  +   '<button class="rp-opt" data-rp="size" data-val="l"  title="Large"><span class="rp-aletter" style="font-size:19px">A</span><span class="rp-cap">L</span></button>'
+  +   '<button class="rp-opt" data-rp="size" data-val="xl" title="Extra large"><span class="rp-aletter" style="font-size:22px">A</span><span class="rp-cap">XL</span></button>'
+  + '</div></div>'
+  + '<div class="rp-row"><div class="rp-label">Compactness</div><div class="rp-opts rp-density">'
+  +   '<button class="rp-opt rp-dens-compact"     data-rp="density" data-val="compact"     title="Compact"><span class="rp-dico"></span><span class="rp-cap">Compact</span></button>'
+  +   '<button class="rp-opt rp-dens-cozy"        data-rp="density" data-val="cozy"        title="Cozy"><span class="rp-dico"></span><span class="rp-cap">Cozy</span></button>'
+  +   '<button class="rp-opt rp-dens-comfortable" data-rp="density" data-val="comfortable" title="Comfortable"><span class="rp-dico"></span><span class="rp-cap">Comfortable</span></button>'
+  + '</div></div>'
+  + '<button class="rp-reset" type="button">↺ Reset to defaults</button>'
+  + '</div>';
+
+function _rpBuildPanel(host) {
+  if (host.querySelector('.rp-panel')) return;        // build once
+  host.insertAdjacentHTML('beforeend', RP_PANEL_HTML);
+  const panel = host.querySelector('.rp-panel');
+  const btn   = host.querySelector('.rp-btn');
+  const open  = () => { panel.hidden = false; host.classList.add('rp-open'); btn.setAttribute('aria-expanded', 'true'); };
+  const close = () => { panel.hidden = true;  host.classList.remove('rp-open'); btn.setAttribute('aria-expanded', 'false'); };
+
+  btn.addEventListener('click', e => { e.stopPropagation(); panel.hidden ? open() : close(); });
+  panel.addEventListener('click', e => {
+    const opt = e.target.closest('.rp-opt');
+    if (opt) { _rpApply(opt.dataset.rp, opt.dataset.val); return; }
+    if (e.target.closest('.rp-reset')) {
+      Object.keys(RP_DEFAULTS).forEach(k => _rpApply(k, RP_DEFAULTS[k]));
+    }
+  });
+  document.addEventListener('click', e => { if (!panel.hidden && !host.contains(e.target)) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) close(); });
+}
+
+/* Kept the name initTheme() so every page's entry point keeps working. */
+function initTheme() {
+  // (Re)apply saved prefs — the bootstrap already set them to avoid a flash,
+  // but this also resolves "auto" and covers pages opened without the bootstrap.
+  _rpApplyTheme(_rpGet('theme'));
+  document.documentElement.setAttribute('data-font', _rpGet('font'));
+  document.documentElement.setAttribute('data-size', _rpGet('size'));
+  document.documentElement.setAttribute('data-density', _rpGet('density'));
+
+  // keep "auto" in step with the OS while the page is open
+  if (RP_MQ.addEventListener) RP_MQ.addEventListener('change', () => {
+    if (_rpGet('theme') === 'auto') _rpApplyTheme('auto');
+  });
+
+  const host = document.querySelector('.reading-prefs');
+  if (host) { _rpBuildPanel(host); _rpSync(); }
+
   applyModulesNavLink();
   initSearch();
   initTocLinks();
